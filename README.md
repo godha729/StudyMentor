@@ -9,11 +9,15 @@ All user data (tasks, pomodoro metrics, custom flashcard decks, quiz score histo
 ## ⚡ Key Features
 
 1. **Integrated Dashboard**: Centralized hub showing today's focal tasks, Pomodoro completion metrics, flashcard review statistics, and overall quiz accuracy.
-2. **Tasks Planner (Todo)**: Priority-tagged (`High`, `Medium`, `Low`) task builder sorted by status, complete with due dates, custom subject categories, and dynamic completion percentage indicators.
-3. **Pomodoro Focus Timer**: 25-minute focus blocks, 5-minute short breaks, and 15-minute long breaks. Displays a circular glowing SVG progress bar, desktop alerts, and self-contained chimes generated via the browser's native **Web Audio API**.
-4. **Spaced Repetition Flashcards**: Leitner-style study engine that dynamically reschedules cards into the active queue based on user feedback (`Easy`, `Medium`, `Hard`) with 3D flip card animations.
-5. **Interactive Quiz Hub**: Preloaded with 10 cognitive science and programming questions. Includes a custom multiple-choice question builder with instant color-coded correct/incorrect feedback and automatic grading history.
-6. **Quiz Reminders**: Scheduled study check-ins that trigger warning dialogs (and native desktop alerts) to test retention during study sessions.
+2. **Weekly Study Streak Heatmap**: 7-day visual bar chart displaying Pomodoro completion frequency with consecutive day streak counting.
+3. **Daily Pomodoro Goal**: Live progress bar tracking progress toward a configurable target (default: 4 sessions per day).
+4. **Tasks Planner (Todo)**: Priority-tagged (`High`, `Medium`, `Low`) task builder sorted by status, complete with due dates, custom subject categories, overdue notification badges, and completion indicators.
+5. **Focus Pomodoro Timer**: 25-minute focus blocks, 5-minute short breaks, and 15-minute long breaks. Displays a circular glowing SVG progress bar, desktop alerts, background ticking, and audio chimes.
+6. **Spaced Repetition Flashcards**: Leitner-style study engine that dynamically reschedules cards into the active queue based on user feedback (`Easy`, `Medium`, `Hard`) with 3D flip card animations.
+7. **Interactive Quiz Hub**: Custom multiple-choice question builder with instant color-coded correct/incorrect feedback and automatic grading history.
+8. **Quiz Reminders**: Scheduled study check-ins that trigger warning dialogs (and native desktop alerts) to test retention during study sessions.
+9. **Keyboard Shortcuts & Toasts**: Express navigation controls (`D`, `T`, `F`, `Q` tabs; `P`/`R` timer controls; `Space` & `1`/`2`/`3` flashcard actions) accompanied by interactive bottom toast notification confirmations.
+10. **Responsive Design**: Collapsible sidebar navigation (hamburger menu style) and fully responsive layouts optimized for desktops, tablets, and mobile devices.
 
 ---
 
