@@ -14,6 +14,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Hamburger Menu (mobile) -->
+  <button id="hamburger-btn" title="Open Menu" aria-label="Open navigation menu">
+    <i data-lucide="menu"></i>
+  </button>
+  <!-- Sidebar overlay backdrop -->
+  <div id="sidebar-overlay"></div>
+
+  <!-- Keyboard shortcut toast -->
+  <div id="kb-toast"><span id="kb-toast-msg"></span></div>
+
   <div class="app-container">
     
     <!-- Sidebar Navigation -->
@@ -153,6 +163,17 @@
                   Quiz Now
                 </button>
               </div>
+
+              <!-- Daily Goal Progress -->
+              <div class="goal-progress-section">
+                <div class="goal-label-row">
+                  <span class="goal-label"><i data-lucide="target" style="width:13px;height:13px;"></i> Daily Pomo Goal (4 sessions)</span>
+                  <span class="goal-pct" id="goal-pct-text">0%</span>
+                </div>
+                <div class="goal-bar-track">
+                  <div class="goal-bar-fill" id="goal-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
             </div>
 
             <!-- Right: Today's High Priority Tasks -->
@@ -169,6 +190,17 @@
               <button class="btn btn-ghost btn-sm" onclick="appRouter.switchTab('todo')" style="margin-top: 10px; width: 100%;">
                 <i data-lucide="plus" style="width:14px; height:14px; margin-right:4px;"></i> Add a Task
               </button>
+            </div>
+          </div>
+
+          <!-- Weekly Streak Heatmap -->
+          <div class="glass-panel streak-section" style="margin-top: 24px;">
+            <div class="streak-header">
+              <span class="streak-title"><i data-lucide="flame" style="width:16px;height:16px;color:var(--accent-orange);"></i> Weekly Study Streak</span>
+              <span class="streak-count-badge" id="streak-badge"><i data-lucide="zap" style="width:12px;height:12px;"></i> <span id="streak-days">0</span> day streak</span>
+            </div>
+            <div class="streak-grid" id="streak-grid">
+              <!-- Populated by app.js -->
             </div>
           </div>
         </section>

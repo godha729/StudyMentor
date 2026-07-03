@@ -16,6 +16,8 @@ class AppRouter {
       btn.addEventListener('click', () => {
         const tabName = btn.getAttribute('data-tab');
         this.switchTab(tabName);
+        // Auto-close sidebar on mobile
+        this.closeSidebar();
       });
     });
 
@@ -32,6 +34,150 @@ class AppRouter {
     // Load theme from store
     const storedTheme = db.load('theme') || 'dark';
     this.setTheme(storedTheme);
+
+    // Mobile hamburger menu
+    this.initMobileSidebar();
+
+    // Global keyboard shortcuts
+    this.initKeyboardShortcuts();
+  }
+
+  /* ==========================================
+     MOBILE SIDEBAR HANDLING
+     ========================================== */
+  initMobileSidebar() {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (hamburgerBtn) {
+      hamburgerBtn.addEventListener('click', () => this.toggleSidebar());
+    }
+    if (overlay) {
+      overlay.addEventListener('click', () => this.closeSidebar());
+    }
+  }
+
+  toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('active', isOpen);
+  }
+
+  closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  }
+
+  /* ==========================================
+     KEYBOARD SHORTCUT SYSTEM
+     ========================================== */
+  initKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Ignore shortcuts when typing in an input field
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      if (['input', 'textarea', 'select'].includes(tag)) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'p':
+          // Toggle Pomodoro Play/Pause
+          if (typeof pomoTimer !== 'undefined') {
+            pomoTimer.toggleTimer();
+            const isRunning = !!pomoTimer.timerId;
+            this.showToast(`<kbd>P</kbd> Pomodoro ${isRunning ? 'Started ▶' : 'Paused ⏸'}`);
+          }
+          break;
+
+        case 'r':
+          // Reset Pomodoro (only on pomodoro tab)
+          if (this.currentTab === 'pomodoro' && typeof pomoTimer !== 'undefined') {
+            pomoTimer.resetTimer();
+            this.showToast('<kbd>R</kbd> Timer Reset');
+          }
+          break;
+
+        case ' ':
+          // Flip current flashcard
+          if (this.currentTab === 'flashcards' && typeof flashcardsApp !== 'undefined') {
+            e.preventDefault();
+            const studyView = document.getElementById('deck-study-view');
+            if (studyView && !studyView.classList.contains('hidden')) {
+              flashcardsApp.flipCard();
+              this.showToast('<kbd>Space</kbd> Card Flipped');
+            }
+          }
+          break;
+
+        case '1':
+          // SRS: Rate Hard
+          if (this.currentTab === 'flashcards' && typeof flashcardsApp !== 'undefined') {
+            const srsActions = document.getElementById('card-srs-actions');
+            if (srsActions && !srsActions.classList.contains('hidden')) {
+              flashcardsApp.rateCard('hard');
+              this.showToast('<kbd>1</kbd> Rated: Hard 🔴');
+            }
+          }
+          break;
+
+        case '2':
+          // SRS: Rate Medium
+          if (this.currentTab === 'flashcards' && typeof flashcardsApp !== 'undefined') {
+            const srsActions = document.getElementById('card-srs-actions');
+            if (srsActions && !srsActions.classList.contains('hidden')) {
+              flashcardsApp.rateCard('medium');
+              this.showToast('<kbd>2</kbd> Rated: Medium 🟡');
+            }
+          }
+          break;
+
+        case '3':
+          // SRS: Rate Easy
+          if (this.currentTab === 'flashcards' && typeof flashcardsApp !== 'undefined') {
+            const srsActions = document.getElementById('card-srs-actions');
+            if (srsActions && !srsActions.classList.contains('hidden')) {
+              flashcardsApp.rateCard('easy');
+              this.showToast('<kbd>3</kbd> Rated: Easy 🟢');
+            }
+          }
+          break;
+
+        case 'd':
+          this.switchTab('dashboard');
+          this.showToast('<kbd>D</kbd> Dashboard');
+          break;
+
+        case 't':
+          this.switchTab('todo');
+          this.showToast('<kbd>T</kbd> Tasks');
+          break;
+
+        case 'f':
+          this.switchTab('flashcards');
+          this.showToast('<kbd>F</kbd> Flashcards');
+          break;
+
+        case 'q':
+          this.switchTab('quiz');
+          this.showToast('<kbd>Q</kbd> Quiz Hub');
+          break;
+      }
+    });
+  }
+
+  showToast(htmlContent) {
+    const toast = document.getElementById('kb-toast');
+    const msg = document.getElementById('kb-toast-msg');
+    if (!toast || !msg) return;
+
+    msg.innerHTML = htmlContent;
+    toast.classList.add('show');
+
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2000);
   }
 
   switchTab(tabId) {
@@ -115,6 +261,69 @@ class AppRouter {
     }
   }
 
+  /* ==========================================
+     WEEKLY STREAK HEATMAP
+     ========================================== */
+  renderWeeklyStreak() {
+    const grid = document.getElementById('streak-grid');
+    const streakDaysEl = document.getElementById('streak-days');
+    if (!grid) return;
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const todayIdx = today.getDay();
+
+    // Load streak data (daily pomo sessions per day-of-week)
+    const streakData = db.load('weekly_streak') || {};
+
+    // Count consecutive streak days (starting from today going back)
+    let streakCount = 0;
+    for (let i = 0; i < 7; i++) {
+      const checkDay = ((todayIdx - i) + 7) % 7;
+      if ((streakData[days[checkDay]] || 0) > 0) {
+        streakCount++;
+      } else {
+        break;
+      }
+    }
+    if (streakDaysEl) streakDaysEl.textContent = streakCount;
+
+    // Build bars: order Sun → Sat, highlight today
+    grid.innerHTML = days.map((day, idx) => {
+      const sessions = streakData[day] || 0;
+      const isToday = idx === todayIdx;
+      const hasActivity = sessions > 0;
+      const barHeight = Math.max(20, Math.min(80, 20 + sessions * 15));
+
+      return `
+        <div class="streak-day">
+          <span class="streak-day-sessions">${sessions > 0 ? sessions : ''}</span>
+          <div class="streak-day-bar ${hasActivity ? 'active' : ''} ${isToday ? 'today' : ''}"
+               style="height: ${barHeight}px;"
+               title="${day}: ${sessions} session${sessions !== 1 ? 's' : ''}"></div>
+          <span class="streak-day-label">${day}</span>
+        </div>
+      `;
+    }).join('');
+
+    setTimeout(() => lucide.createIcons(), 10);
+  }
+
+  /* ==========================================
+     DAILY GOAL PROGRESS BAR
+     ========================================== */
+  updateGoalProgress() {
+    const DAILY_GOAL = 4; // 4 Pomodoro sessions = 100%
+    const pomoSessions = db.load('pomo_sessions_count') || 0;
+    const pct = Math.min(100, Math.round((pomoSessions / DAILY_GOAL) * 100));
+
+    const fillEl = document.getElementById('goal-bar-fill');
+    const pctEl = document.getElementById('goal-pct-text');
+
+    if (fillEl) fillEl.style.width = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${pct}%`;
+  }
+
   updateDashboardStats() {
     // Tasks Stats
     const tasks = db.load('tasks') || [];
@@ -145,6 +354,7 @@ class AppRouter {
     // Render dashboard task preview list (show top 4 high/medium pending tasks)
     const taskPreviewList = document.getElementById('dashboard-tasks-preview');
     if (taskPreviewList) {
+      const today = new Date().toISOString().split('T')[0];
       const pendingTasks = tasks.filter(t => !t.completed);
       // Sort: high priority first, then medium, then low
       const sortedTasks = pendingTasks.sort((a, b) => {
@@ -159,15 +369,24 @@ class AppRouter {
           </li>
         `;
       } else {
-        taskPreviewList.innerHTML = sortedTasks.map(task => `
+        taskPreviewList.innerHTML = sortedTasks.map(task => {
+          const isOverdue = task.due && task.due < today;
+          return `
           <li class="dashboard-task-item">
             <span class="task-dot ${task.priority}"></span>
             <span class="task-name">${this.escapeHTML(task.title)}</span>
-            <span class="badge badge-tag" style="font-size:10px;">${this.escapeHTML(task.category || 'Study')}</span>
+            ${isOverdue
+              ? `<span class="badge badge-overdue" style="font-size:10px;">Overdue</span>`
+              : `<span class="badge badge-tag" style="font-size:10px;">${this.escapeHTML(task.category || 'Study')}</span>`
+            }
           </li>
-        `).join('');
+        `}).join('');
       }
     }
+
+    // Update streak heatmap and goal progress
+    this.renderWeeklyStreak();
+    this.updateGoalProgress();
   }
 
   escapeHTML(str) {

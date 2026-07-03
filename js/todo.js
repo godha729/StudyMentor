@@ -155,6 +155,8 @@ class TodoApp {
       const escapedTitle = appRouter.escapeHTML(task.title);
       const escapedCategory = appRouter.escapeHTML(task.category);
       const dueFormatted = task.due ? this.formatDate(task.due) : 'No due date';
+      const today = new Date().toISOString().split('T')[0];
+      const isOverdue = task.due && task.due < today && !task.completed;
       
       return `
         <div class="task-card ${task.completed ? 'completed' : ''}" id="task-${task.id}">
@@ -168,10 +170,11 @@ class TodoApp {
             <div class="task-meta-row">
               <span class="badge badge-priority-${task.priority}">${task.priority}</span>
               <span class="badge badge-tag">${escapedCategory}</span>
-              <span class="task-due-date">
+              <span class="task-due-date ${isOverdue ? 'overdue-text' : ''}">
                 <i data-lucide="calendar"></i>
                 <span>${dueFormatted}</span>
               </span>
+              ${isOverdue ? '<span class="badge badge-overdue">Overdue!</span>' : ''}
             </div>
           </div>
 

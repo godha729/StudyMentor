@@ -207,6 +207,14 @@ class PomodoroTimer {
     if (this.currentMode === 'work') {
       const currentStats = db.load('pomo_sessions_count') || 0;
       db.save('pomo_sessions_count', currentStats + 1);
+
+      // Record in weekly streak heatmap (keyed by day name)
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const todayName = dayNames[new Date().getDay()];
+      const streakData = db.load('weekly_streak') || {};
+      streakData[todayName] = (streakData[todayName] || 0) + 1;
+      db.save('weekly_streak', streakData);
+
       appRouter.updateDashboardStats();
     }
 
